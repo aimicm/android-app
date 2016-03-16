@@ -179,8 +179,8 @@ public class MQTTClient implements MqttCallback {
         // Connect to Broker
         mClient = new MqttAsyncClient(sharedPref.getString("pref_url", "") + ":" + sharedPref.getString("pref_port", "1883"), android_id + "_client", dataStore);
         mClient.setCallback(this);
-        mClient.connect(connOpt);
-        Log.i(TAG, "Connected to " + sharedPref.getString("pref_url", ""));
+        //mClient.connect(connOpt);
+        //Log.i(TAG, "Connected to " + sharedPref.getString("pref_url", ""));
 
     }
 

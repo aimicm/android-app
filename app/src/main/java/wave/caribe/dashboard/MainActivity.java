@@ -54,6 +54,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
+import android.graphics.RectF;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -93,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private MapView mapView = null;
     private TextView msg;
     private LinearLayout msgbox;
+    private FloatingActionButton mLocationButton;
 
     // Timers for display
     private Timer resetMarkerTimer = new Timer();
@@ -182,6 +186,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         msg = (TextView) findViewById(R.id.msg);
         msgbox = (LinearLayout) findViewById(R.id.msgbox);
+        mLocationButton = (FloatingActionButton) findViewById(R.id.location);
+        if (isLocationPermissionGranted() && isLocationServiceEnabled()) {
+            mLocationButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Toggle GPS position updates
+                    if (mCurrentLocation != null) {
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(new LatLng(mCurrentLocation))
+                                .build();
+                        mapView.easeCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
+                    }
+                }
+            });
+        }
+
         mapView = (MapView) findViewById(R.id.map);
         mapView.setAccessToken(getString(R.string.mapbox_id));
 
@@ -201,8 +221,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 mapView.setRotateEnabled(false);
                 mapView.onCreate(savedInstanceState);
 
-                FloatingActionButton mLocationButton = (FloatingActionButton) findViewById(R.id.location);
-
                 if (isLocationPermissionGranted() && isLocationServiceEnabled()) {
                     //noinspection ResourceType
                     mapView.setMyLocationEnabled(true);
@@ -215,22 +233,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         @Override
                         public void onMyLocationChange(@Nullable Location location) {
                             if (location != null) {
-                                mapView.setZoomLevel(DEFAULT_ZOOM);
-                                mapView.setCenterCoordinate(new LatLng(location));
+                                CameraPosition cameraPosition = new CameraPosition.Builder()
+                                        .target(new LatLng(location))
+                                        .zoom(DEFAULT_ZOOM)
+                                        .build();
+                                mapView.easeCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
                                 mapView.setOnMyLocationChangeListener(null);
                             }
                         }
                     });
 
-                    mLocationButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            // Toggle GPS position updates
-                            if (mCurrentLocation != null) {
-                                mapView.setCenterCoordinate(new LatLng(mCurrentLocation));
-                            }
-                        }
-                    });
+
                     mLocationButton.setVisibility(View.VISIBLE);
 
                 } else if (isLocationPermissionGranted()) {

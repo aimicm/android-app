@@ -371,7 +371,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         // back to normal before reconnecting
         resetStillMarkers();
 
-        Handler handler = new Handler();
+        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
+        handlerThread.start();
+        Handler handler = new Handler(handlerThread.getLooper());
         Runnable r = new Runnable() {
             @Override
             public void run() {

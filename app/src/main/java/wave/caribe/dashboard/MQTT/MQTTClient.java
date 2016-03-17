@@ -164,8 +164,8 @@ public class MQTTClient implements MqttCallback {
         connOpt.setCleanSession(true);
         connOpt.setKeepAliveInterval(3600);
         connOpt.setConnectionTimeout(3600);
-        connOpt.setUserName(android_id);
-        connOpt.setPassword(sharedPref.getString("pref_token", "").toCharArray());
+        connOpt.setUserName(sharedPref.getString("pref_username", "").toString());
+        connOpt.setPassword(sharedPref.getString("pref_password", "").toCharArray());
 
         String tmpDir = createTempDir().getPath(); //System.getProperty("java.io.tmpdir");
         Log.i(TAG, "Persistence will be done in " + tmpDir);

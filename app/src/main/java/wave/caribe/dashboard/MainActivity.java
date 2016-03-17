@@ -437,18 +437,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 places.add(marker.getTitle());
                 marker.setIcon(warning_icon);
 
-                mapView.removeMarker(marker);
-                /*
-                listOfMarkers.set(listOfMarkers.indexOf(marker), mapView.addMarker(new MarkerOptions()
-                        .position(marker.getPosition())
-                        .title(marker.getTitle())
-                        .icon(marker.getIcon())
-                        .snippet(marker.getSnippet())));*/
-                mapView.addMarker(new MarkerOptions()
-                        .position(marker.getPosition())
-                        .title(marker.getTitle())
-                        .icon(marker.getIcon())
-                        .snippet(marker.getSnippet()));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mapView.removeMarker(marker);
+                        mapView.addMarker(new MarkerOptions()
+                                .position(marker.getPosition())
+                                .title(marker.getTitle())
+                                .icon(marker.getIcon())
+                                .snippet(marker.getSnippet()));
+                    }
+                });
 
             }
         }
@@ -506,12 +505,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         for (final Marker marker : listOfMarkers) {
             if (uids_list.contains(marker.getSnippet())) {
                 marker.setIcon(danger_icon);
-                mapView.removeMarker(marker);
-                mapView.addMarker(new MarkerOptions()
-                        .position(marker.getPosition())
-                        .title(marker.getTitle())
-                        .icon(marker.getIcon())
-                        .snippet(marker.getSnippet()));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mapView.removeMarker(marker);
+                        mapView.addMarker(new MarkerOptions()
+                                .position(marker.getPosition())
+                                .title(marker.getTitle())
+                                .icon(marker.getIcon())
+                                .snippet(marker.getSnippet()));
+                            }
+                });
             }
         }
 

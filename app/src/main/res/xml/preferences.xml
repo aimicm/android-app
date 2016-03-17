@@ -13,9 +13,14 @@
             android:summary="Indicate the port used for connecting to MQTT"
             android:defaultValue="1883" />
         <EditTextPreference
-            android:key="pref_token"
-            android:summary="The auth token"
-            android:title="Authentification token"
+            android:key="pref_username"
+            android:summary="The username"
+            android:title="Authentification user"
+            android:defaultValue="pheroman" />
+        <EditTextPreference
+            android:key="pref_password"
+            android:summary="The password"
+            android:title="Authentification password"
             android:defaultValue="fautpasledire" />
     </PreferenceCategory>
     <PreferenceCategory

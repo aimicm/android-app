@@ -112,8 +112,8 @@ public class RegistrationIntentService extends IntentService {
             return false;
         }
 
-        InputStream inputStream = null;
-        HttpURLConnection urlConnection = null;
+        InputStream inputStream;
+        HttpURLConnection urlConnection;
         try {
 
             /* forming th java.net.URL object */

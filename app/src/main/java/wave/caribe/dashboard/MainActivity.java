@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -47,10 +48,13 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.constants.MyBearingTracking;
 import com.mapbox.mapboxsdk.constants.MyLocationTracking;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -198,8 +202,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void onMyLocationChange(@Nullable Location location) {
                     if (location != null) {
-                        mapView.setZoomLevel(DEFAULT_ZOOM);
-                        mapView.setCenterCoordinate(new LatLng(location));
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(new LatLng(location))
+                                .zoom(DEFAULT_ZOOM)
+                                .build();
+                        mapView.easeCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
                         mapView.setOnMyLocationChangeListener(null);
                     }
                 }
@@ -210,7 +217,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 public void onClick(View v) {
                     // Toggle GPS position updates
                     if (mCurrentLocation != null) {
-                        mapView.setCenterCoordinate(new LatLng(mCurrentLocation));
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(new LatLng(mCurrentLocation))
+                                .build();
+                        mapView.easeCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
+                        mapView.setOnMyLocationChangeListener(null);
                     }
                 }
             });
@@ -261,20 +272,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 public void onFinished(JSONArray result) {
                     // Translate to sensor ArrayList
                     Sensor current;
+                    ArrayList<LatLng> coordinates = new ArrayList<>();
+
                     for (int i = 0; i < result.length(); i++) {
                         try {
 
                             JSONObject place = result.getJSONObject(i);
                             JSONArray sensor_uids = place.getJSONArray("sensor_uids");
+                            LatLng c = new LatLng(Double.parseDouble(place.getString("lat")), Double.parseDouble(place.getString("lon")));
+
                             if (sensor_uids.length() > 0 && !sensor_uids.get(0).toString().equals("null")) {
-                                current = new Sensor(sensor_uids.get(0).toString(), place.getString("name"), new LatLng(Double.parseDouble(place.getString("lat")), Double.parseDouble(place.getString("lon"))));
+                                current = new Sensor(sensor_uids.get(0).toString(), place.getString("name"), c);
                             } else {
-                                current = new Sensor(null,place.getString("name"), new LatLng(Double.parseDouble(place.getString("lat")), Double.parseDouble(place.getString("lon"))));
+                                current = new Sensor(null,place.getString("name"), c);
                             }
+                            coordinates.add(c);
                             sensors.add(current);
 
                         } catch(JSONException e) {}
                     }
+
+                    LatLng[] arr = coordinates.toArray(new LatLng[coordinates.size()]);
+                    mapView.setVisibleCoordinateBounds(arr, new RectF(100, 100, 100, 100), true);
+
                     resetStillMarkers();
                 }
             });
@@ -372,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         // back to normal before reconnecting
         resetStillMarkers();
 
-        HandlerThread handlerThread = new HandlerThread("MyHandlerThread");
+        HandlerThread handlerThread = new HandlerThread("MQTTHandler");
         handlerThread.start();
         Handler handler = new Handler(handlerThread.getLooper());
         Runnable r = new Runnable() {
@@ -441,8 +461,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 msgbox.setBackgroundColor(getResources().getColor(R.color.warning));
             }
         });
-
-        Log.i(TAG, "Map updated.");
 
         // Run for 2 seconds
         resetMarkerTimer = new Timer();

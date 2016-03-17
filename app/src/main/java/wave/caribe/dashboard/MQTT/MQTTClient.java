@@ -18,17 +18,18 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.StringTokenizer;
 
 import wave.caribe.dashboard.MainActivity;
 
 public class MQTTClient implements MqttCallback {
 
+    private static final int TEMP_DIR_ATTEMPTS = 10000;
     private static final String TAG = "CW:MQTT BROKER";
 
     MqttClient mClient;
@@ -138,6 +139,21 @@ public class MQTTClient implements MqttCallback {
         }
     }
 
+    public static File createTempDir() {
+        File baseDir = new File(System.getProperty("java.io.tmpdir"));
+        String baseName = System.currentTimeMillis() + "-";
+
+        for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
+            File tempDir = new File(baseDir, baseName + counter);
+            if (tempDir.mkdir()) {
+                return tempDir;
+            }
+        }
+        throw new IllegalStateException("Failed to create directory within "
+                + TEMP_DIR_ATTEMPTS + " attempts (tried "
+                + baseName + "0 to " + baseName + (TEMP_DIR_ATTEMPTS - 1) + ')');
+    }
+
     /**
      *
      *
@@ -151,7 +167,9 @@ public class MQTTClient implements MqttCallback {
         connOpt.setUserName(android_id);
         connOpt.setPassword(sharedPref.getString("pref_token", "").toCharArray());
 
-        String tmpDir = System.getProperty("java.io.tmpdir");
+        String tmpDir = createTempDir().getPath(); //System.getProperty("java.io.tmpdir");
+        Log.i(TAG, "Persistence will be done in " + tmpDir);
+
         MqttDefaultFilePersistence dataStore = new MqttDefaultFilePersistence(tmpDir);
 
         // Connect to Broker

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <color name="background">#FFF</color>
     <color name="backgroundDark">#2F2F2F</color>
 
     <color name="text">#999999</color>
-    <color name="white">#FFFFFF</color>
-    <color name="black">#000000</color>
+    <color name="white" tools:ignore="PrivateResource">#FFFFFF</color>
+    <color name="black" tools:ignore="PrivateResource">#000000</color>
 
     <color name="primary">#24729a</color>
     <color name="secondary">#21AC61</color>

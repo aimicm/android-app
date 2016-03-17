@@ -9,9 +9,9 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
  */
 public class Sensor {
 
-    private String uid;
-    private String name;
-    private LatLng coords;
+    private final String uid;
+    private final String name;
+    private final LatLng coords;
 
     public Sensor(String uid, String name, LatLng coords) {
         this.uid = uid;

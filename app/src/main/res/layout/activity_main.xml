@@ -22,7 +22,7 @@
             android:text="Medium Text"
             android:id="@+id/msg"
             android:ellipsize="end"
-            android:textSize="16dp" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
@@ -34,7 +34,7 @@
         android:src="@drawable/ic_gps_fixed_white"
         app:backgroundTint="@color/secondary"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:visibility="visible" />
 
     <com.mapbox.mapboxsdk.views.MapView

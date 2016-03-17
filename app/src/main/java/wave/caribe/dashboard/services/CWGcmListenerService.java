@@ -29,7 +29,7 @@ public class CWGcmListenerService extends GcmListenerService {
 
     private static final String TAG = "CW:GCM LISTENER SERVICE";
 
-    private Random rand = new Random();
+    private final Random rand = new Random();
 
     @Override
     public void onMessageReceived(String from, Bundle data) {

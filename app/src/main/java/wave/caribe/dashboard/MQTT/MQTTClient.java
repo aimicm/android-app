@@ -32,14 +32,14 @@ public class MQTTClient implements MqttCallback {
     private static final int TEMP_DIR_ATTEMPTS = 10000;
     private static final String TAG = "CW:MQTT BROKER";
 
-    MqttClient mClient;
-    MqttConnectOptions connOpt;
-    MQTTCallbackInterface mCallbackInterface;
+    private MqttClient mClient;
+    private MqttConnectOptions connOpt;
+    private MQTTCallbackInterface mCallbackInterface;
 
-    SharedPreferences sharedPref;
+    private final SharedPreferences sharedPref;
 
     // Used to generate a unique ID for the MQTT connection
-    private String android_id;
+    private final String android_id;
 
     public MQTTClient(MainActivity activity) {
         sharedPref = PreferenceManager.getDefaultSharedPreferences(activity);
@@ -70,9 +70,7 @@ public class MQTTClient implements MqttCallback {
             Thread.sleep(5000);
             connect();
             subscribeToAll(mCallbackInterface);
-        } catch (MqttException e) {
-            e.printStackTrace();
-        } catch (InterruptedException i) {
+        } catch (Exception i) {
             i.printStackTrace();
         }
     }
@@ -111,7 +109,7 @@ public class MQTTClient implements MqttCallback {
         }
     }
 
-    public void subscribeToAll(MQTTCallbackInterface ci){
+    private void subscribeToAll(MQTTCallbackInterface ci){
 
         // setup topic
         int subQoS = 1;
@@ -139,7 +137,7 @@ public class MQTTClient implements MqttCallback {
         }
     }
 
-    public static File createTempDir() {
+    private static File createTempDir() {
         File baseDir = new File(System.getProperty("java.io.tmpdir"));
         String baseName = System.currentTimeMillis() + "-";
 
@@ -158,13 +156,13 @@ public class MQTTClient implements MqttCallback {
      *
      *
      */
-    public void connect() throws MqttException {
+    private void connect() throws MqttException {
         connOpt = new MqttConnectOptions();
 
         connOpt.setCleanSession(true);
         connOpt.setKeepAliveInterval(3600);
         connOpt.setConnectionTimeout(3600);
-        connOpt.setUserName(sharedPref.getString("pref_username", "").toString());
+        connOpt.setUserName(sharedPref.getString("pref_username", ""));
         connOpt.setPassword(sharedPref.getString("pref_password", "").toCharArray());
 
         String tmpDir = createTempDir().getPath(); //System.getProperty("java.io.tmpdir");

@@ -1,6 +1,7 @@
 package wave.caribe.dashboard;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -52,15 +53,12 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.constants.MyBearingTracking;
 import com.mapbox.mapboxsdk.constants.MyLocationTracking;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -104,12 +102,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private static final int WARNING_DISPLAY_TIME_IN_S = 5;
     private static final int ALERT_DISPLAY_TIME_IN_S = 120;
 
-    private ArrayList<Sensor> sensors = new ArrayList<>();
-    private ArrayList<Marker> listOfMarkers = new ArrayList<>();
+    private final ArrayList<Sensor> sensors = new ArrayList<>();
+    private final ArrayList<Marker> listOfMarkers = new ArrayList<>();
 
     private static final int DEFAULT_ZOOM = 10;
-    private float default_lat = 15.9369587f; // Marie Galante
-    private float default_lon = -61.301064f;
+    private final float default_lat = 15.9369587f; // Marie Galante
+    private final float default_lon = -61.301064f;
     private final int LOCATION_INTERVAL = 2000;
 
     private Date mLastActive;
@@ -121,27 +119,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public static final String SENT_TOKEN_TO_SERVER = "sentTokenToServer";
     public static final String REGISTRATION_COMPLETE = "registrationComplete";
 
-    //Threading
-    private ExecutorService executorService;
-    private Set<Callable<Boolean>> callables;
-
     // Do we have location permissions or not ?
-    public boolean isLocationPermissionGranted() {
+    private boolean isLocationPermissionGranted() {
         return ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
-    public void askPermissionForLocation() {
+    private void askPermissionForLocation() {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                 REQUEST_LOCATION);
     }
 
-    public boolean isLocationServiceEnabled() {
-        LocationManager locationManager = null;
+    private boolean isLocationServiceEnabled() {
+        LocationManager locationManager;
         boolean gps_enabled= false,network_enabled = false;
 
-        if(locationManager ==null)
-            locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
         try{
             gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         }catch(Exception ex){
@@ -192,8 +186,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mapView.setAccessToken(getString(R.string.mapbox_id));
 
         //Handling tasks dispatching across 3 threads
-        executorService = Executors.newFixedThreadPool(3);
-        callables = new HashSet<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        Set<Callable<Boolean>> callables = new HashSet<>();
 
         callables.add(new Callable<Boolean>() {
             public Boolean call() throws Exception {
@@ -279,12 +273,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             
             executorService.invokeAll(callables);
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
         finally {
-
             executorService.shutdown();
-            executorService = null;
-
         }
 
         // Build the MQTT Client
@@ -323,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             coordinates.add(c);
                             sensors.add(current);
 
-                        } catch(JSONException e) {}
+                        } catch(JSONException ignored) {}
                     }
 
                     LatLng[] arr = coordinates.toArray(new LatLng[coordinates.size()]);
@@ -343,6 +334,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Log.i(TAG, "Resetting markers.");
 
         runOnUiThread(new Runnable() {
+            @SuppressLint("PrivateResource")
             @Override
             public void run() {
                 mapView.removeAllAnnotations();
@@ -448,7 +440,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
-    public void updateMap(String uid, JSONArray measurement)
+    private void updateMap(String uid, JSONArray measurement)
     {
         if (alert_in_progress) {
             // We don't want to interfere with a general alert
@@ -509,7 +501,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
-    public void showAlert(JSONObject alert)
+    private void showAlert(JSONObject alert)
     {
         // A new event is coming
         resetMarkerTimer.cancel();
@@ -528,8 +520,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         try {
             sensor_uids = (JSONArray) alert.get("sensors_uids");
+            //noinspection StatementWithEmptyBody
             for (int i = 0; i < sensor_uids.length();uids_list.add(sensor_uids.get(i++).toString()));
-        } catch(Exception e) {
+        } catch(Exception ignored) {
         }
 
         IconFactory mIconFactory = IconFactory.getInstance(this);
@@ -556,6 +549,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         final String message = tmp;
         // Update msg box with alert
         runOnUiThread(new Runnable() {
+            @SuppressLint("PrivateResource")
             @Override
             public void run() {
                 msg.setText(message);
@@ -576,7 +570,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }, ALERT_DISPLAY_TIME_IN_S*1000);
     }
 
-    public void updateLastActive()
+    private void updateLastActive()
     {
         mLastActive = new Date();
         //Log.i(TAG, "Data received at " + mLastActive.toString());

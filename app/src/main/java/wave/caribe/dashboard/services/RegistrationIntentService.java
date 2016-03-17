@@ -16,7 +16,6 @@ import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,7 +118,6 @@ public class RegistrationIntentService extends IntentService {
             /* forming th java.net.URL object */
             URL url = new URL(reg_url);
             DataOutputStream printout;
-            DataInputStream input;
             urlConnection = (HttpURLConnection) url.openConnection();
 
 
@@ -171,13 +169,14 @@ public class RegistrationIntentService extends IntentService {
 
     private String convertInputStreamToString(InputStream inputStream) throws IOException {
         BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
-        String line = "";
+        String line;
         String result = "";
         while((line = bufferedReader.readLine()) != null){
             result += line;
         }
 
         /* Close Stream */
+        //noinspection ConstantConditions
         if(null!=inputStream){
             inputStream.close();
         }

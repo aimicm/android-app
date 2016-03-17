@@ -89,7 +89,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Timer resetMarkerTimer = new Timer();
     private Timer resetAlertTimer = new Timer();
 
-    private static final int WARNING_DISPLAY_TIME_IN_S = 2;
+    private boolean alert_in_progress = false;
+    private static final int WARNING_DISPLAY_TIME_IN_S = 5;
     private static final int ALERT_DISPLAY_TIME_IN_S = 120;
 
     private ArrayList<Sensor> sensors = new ArrayList<>();
@@ -285,12 +286,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     {
 
         Log.i(TAG, "Resetting markers.");
-        mapView.removeAllAnnotations();
-        listOfMarkers.clear();
 
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                mapView.removeAllAnnotations();
+                listOfMarkers.clear();
                 msg.setText(R.string.no_event);
                 msg.setTextColor(getResources().getColor(R.color.black));
                 msgbox.setBackgroundColor(getResources().getColor(R.color.safe));
@@ -392,12 +393,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public void updateMap(String uid, JSONArray measurement)
     {
+        if (alert_in_progress) {
+            // We don't want to interfere with a general alert
+            return;
+        }
+
         // A new event is coming
         resetMarkerTimer.cancel();
 
         updateLastActive();
-
-        Log.i(TAG, "Updating map.");
 
         final ArrayList<String> places = new ArrayList<>();
 
@@ -409,12 +413,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             if (marker.getSnippet().equals(uid)) {
                 places.add(marker.getTitle());
                 marker.setIcon(warning_icon);
+
                 mapView.removeMarker(marker);
+                /*
+                listOfMarkers.set(listOfMarkers.indexOf(marker), mapView.addMarker(new MarkerOptions()
+                        .position(marker.getPosition())
+                        .title(marker.getTitle())
+                        .icon(marker.getIcon())
+                        .snippet(marker.getSnippet())));*/
                 mapView.addMarker(new MarkerOptions()
                         .position(marker.getPosition())
                         .title(marker.getTitle())
                         .icon(marker.getIcon())
                         .snippet(marker.getSnippet()));
+
             }
         }
 
@@ -427,7 +439,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         });
 
-
         Log.i(TAG, "Map updated.");
 
         // Run for 2 seconds
@@ -435,7 +446,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         resetMarkerTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-               resetStillMarkers();
+                if (!alert_in_progress) {
+                    resetStillMarkers();
+                }
+                resetMarkerTimer.cancel();
             }
         }, WARNING_DISPLAY_TIME_IN_S*1000);
 
@@ -443,17 +457,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public void showAlert(JSONObject alert)
     {
+        // A new event is coming
+        resetMarkerTimer.cancel();
+        alert_in_progress = true;
+
         String tmp;
-        JSONArray sensor_uids = new JSONArray();
+        JSONArray sensor_uids;
         List<String> uids_list = new ArrayList<>();
         updateLastActive();
 
         try {
             tmp = alert.get("message").toString();
-            sensor_uids = (JSONArray) alert.get("sensor_uids");
-            for (int i = 0; i < sensor_uids.length();uids_list.add(sensor_uids.get(i++).toString()));
         } catch(Exception e) {
             tmp = getString(R.string.general_alert);
+        }
+
+        try {
+            sensor_uids = (JSONArray) alert.get("sensors_uids");
+            for (int i = 0; i < sensor_uids.length();uids_list.add(sensor_uids.get(i++).toString()));
+        } catch(Exception e) {
         }
 
         IconFactory mIconFactory = IconFactory.getInstance(this);
@@ -489,6 +511,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             @Override
             public void run() {
                 resetStillMarkers();
+                resetAlertTimer.cancel();
+                alert_in_progress = false;
             }
         }, ALERT_DISPLAY_TIME_IN_S*1000);
     }

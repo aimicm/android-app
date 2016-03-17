@@ -1,5 +1,6 @@
 package wave.caribe.dashboard.services;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -58,6 +59,7 @@ public class CWGcmListenerService extends GcmListenerService {
                 .setColor(getResources().getColor(R.color.primary))
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                 .setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =

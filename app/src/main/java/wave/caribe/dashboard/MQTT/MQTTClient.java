@@ -57,6 +57,13 @@ public class MQTTClient implements MqttCallback {
     @Override
     public void connectionLost(Throwable t) {
         Log.i(TAG, "Connection LOST, reconnecting : " + t);
+
+            System.out.println("msg "+t.getMessage());
+            System.out.println("loc "+t.getLocalizedMessage());
+            System.out.println("cause "+t.getCause());
+            System.out.println("excep "+t);
+            t.printStackTrace();
+
         // Wait 5 secs before reconnecting
         try {
             Thread.sleep(5000);
@@ -118,6 +125,14 @@ public class MQTTClient implements MqttCallback {
                 mClient.subscribe(sharedPref.getString("pref_alert", ""), subQoS);
             }
             mCallbackInterface = ci;
+        } catch(MqttException me) {
+            // Display full details of any exception that occurs
+            System.out.println("reason "+me.getReasonCode());
+            System.out.println("msg "+me.getMessage());
+            System.out.println("loc "+me.getLocalizedMessage());
+            System.out.println("cause "+me.getCause());
+            System.out.println("excep "+me);
+            me.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
